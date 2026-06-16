@@ -1,0 +1,50 @@
+[
+  {
+    "gym_id": "g1",
+    "name": "IronCore Strength Lab",
+    "lat": 28.6139,
+    "lng": 77.2090,
+    "tags": ["strength", "gain", "powerlifting", "free_weights"],
+    "free": false
+  },
+  {
+    "gym_id": "g2",
+    "name": "PulseFit 24/7",
+    "lat": 28.6280,
+    "lng": 77.2190,
+    "tags": ["cardio", "lose", "classes", "treadmill"],
+    "free": false
+  },
+  {
+    "gym_id": "g3",
+    "name": "Community Park Calisthenics",
+    "lat": 28.6050,
+    "lng": 77.2000,
+    "tags": ["bodyweight", "maintain", "outdoor", "free"],
+    "free": true
+  },
+  {
+    "gym_id": "g4",
+    "name": "ZenFlow Yoga & Mobility",
+    "lat": 28.6200,
+    "lng": 77.1950,
+    "tags": ["mobility", "maintain", "yoga", "recovery"],
+    "free": false
+  },
+  {
+    "gym_id": "g5",
+    "name": "Apex CrossTraining",
+    "lat": 28.6350,
+    "lng": 77.2250,
+    "tags": ["hiit", "lose", "gain", "functional"],
+    "free": false
+  },
+  {
+    "gym_id": "g6",
+    "name": "Riverside Running Track",
+    "lat": 28.6100,
+    "lng": 77.2300,
+    "tags": ["cardio", "lose", "outdoor", "free", "running"],
+    "free": true
+  }
+]
