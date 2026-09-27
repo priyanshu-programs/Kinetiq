@@ -1,7 +1,6 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import create_engine, pool, text
 
 from alembic import context
 
@@ -13,8 +12,11 @@ import app.models  # noqa: F401  (registers all tables on Base.metadata)
 # access to the values within the .ini file in use.
 config = context.config
 
-# Use the application's database URL instead of the static alembic.ini value.
-config.set_main_option("sqlalchemy.url", settings.database_url)
+# Migrations use Neon's direct (unpooled) endpoint. The URL is passed straight
+# to create_engine rather than through config.set_main_option, because that
+# path runs values through configparser — which would treat a literal '%' in a
+# password as interpolation syntax.
+db_url = settings.migration_database_url
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -24,10 +26,8 @@ if config.config_file_name is not None:
 # Model metadata for 'autogenerate' support.
 target_metadata = Base.metadata
 
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
+# A 64-bit key for the PostgreSQL advisory lock guarding concurrent upgrades.
+_MIGRATION_LOCK_KEY = 8442310155327104001
 
 
 def run_migrations_offline() -> None:
@@ -42,9 +42,8 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
     context.configure(
-        url=url,
+        url=db_url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -61,17 +60,26 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    connectable = create_engine(db_url, poolclass=pool.NullPool, future=True)
+    is_sqlite = connectable.dialect.name == "sqlite"
 
     with connectable.connect() as connection:
+        if not is_sqlite:
+            # The container runs `alembic upgrade head` on every boot, so a
+            # redeploy can start two at once against the same database. This
+            # serializes them; the lock releases with the session.
+            connection.execute(text("SELECT pg_advisory_lock(:k)"), {"k": _MIGRATION_LOCK_KEY})
+            # The SELECT auto-begins a transaction. Alembic treats that as an
+            # external transaction and would never commit it, silently
+            # discarding the whole migration when the connection closes. The
+            # lock is session-level, so it survives this commit.
+            connection.commit()
+
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
-            render_as_batch=True,  # SQLite-safe ALTERs
+            compare_type=True,
+            render_as_batch=is_sqlite,  # SQLite-safe ALTERs
         )
 
         with context.begin_transaction():

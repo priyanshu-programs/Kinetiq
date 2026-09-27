@@ -3,19 +3,20 @@ from datetime import date, datetime
 from sqlalchemy import (
     Boolean,
     Date,
-    DateTime,
-    Enum,
     Float,
     ForeignKey,
     Index,
     Integer,
     Text,
+    UniqueConstraint,
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
 from app.models.enums import ChatRole
+from app.models.types import TZDateTime, enum_column
+from app.timeutil import utc_today
 
 
 class ChatMessage(Base):
@@ -23,10 +24,10 @@ class ChatMessage(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    role: Mapped[ChatRole] = mapped_column(Enum(ChatRole), nullable=False)
+    role: Mapped[ChatRole] = mapped_column(enum_column(ChatRole), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     sentiment: Mapped[float | None] = mapped_column(Float)
-    ts: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    ts: Mapped[datetime] = mapped_column(TZDateTime, server_default=func.now())
 
     __table_args__ = (Index("ix_chat_user_ts", "user_id", "ts"),)
 
@@ -52,5 +53,10 @@ class Nudge(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True, nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
     reason: Mapped[str | None] = mapped_column(Text)
-    sent_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    # The UTC day this nudge covers. Enforced unique per user so a restart, a
+    # repeat visit, or a dismissal cannot produce a second nudge for one day.
+    nudge_date: Mapped[date] = mapped_column(Date, nullable=False, default=utc_today)
+    sent_at: Mapped[datetime] = mapped_column(TZDateTime, server_default=func.now())
     dismissed: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    __table_args__ = (UniqueConstraint("user_id", "nudge_date", name="uq_nudge_user_date"),)

@@ -7,6 +7,7 @@ pydantic-settings==2.7.1
 # --- Phase 1: data layer + auth ---
 SQLAlchemy==2.0.36
 alembic==1.14.0
+psycopg[binary]==3.2.3
 passlib[bcrypt]==1.7.4
 bcrypt==4.0.1
 python-jose[cryptography]==3.3.0
@@ -15,3 +16,10 @@ email-validator==2.2.0
 slowapi==0.1.9
 loguru==0.7.3
 httpx==0.28.1
+
+# Test-only dependencies live in requirements-dev.txt so they stay out of the
+# deployed image.
+
+# --- Phase 3: AI modules ---
+vaderSentiment==3.3.2
+numpy==2.2.1
