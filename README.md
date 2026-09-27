@@ -6,6 +6,15 @@ coaching, behavioral habit prediction, simulated smart-gym IoT, and a recommende
 
 Built solo, cost-free. See [plan.md](plan.md) for the full design and [updates.md](updates.md) for progress.
 
+## Live
+
+- **App:** https://frontend-alpha-wheat-qq5ex7zkhk.vercel.app
+- **API:** https://kinetiq-api-ys16.onrender.com (`/health`, `/docs`)
+
+The API runs on Render's free tier and sleeps after 15 minutes idle — the first
+request after a nap takes ~30-60s to wake. Data lives in Neon PostgreSQL, so it
+survives both the sleep and a redeploy.
+
 ## Stack
 
 - **Frontend:** React 18 + Vite 5 + TypeScript + Tailwind 3, React Router 6, Zustand, axios
