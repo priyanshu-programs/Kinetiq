@@ -23,7 +23,7 @@ services:
       - key: CORS_ORIGINS
         # Must be the real Vercel URL. Startup refuses a localhost origin in
         # production.
-        value: https://frontend-alpha-wheat-qq5ex7zkhk.vercel.app
+        value: https://frontend-alpha-wheat-qq5ex7zkhk.vercel.app,https://kinetiq.runs-on.dev
       - key: DATABASE_URL
         # Neon POOLED connection string (host contains "-pooler").
         sync: false
