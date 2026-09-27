@@ -67,14 +67,14 @@ export function Register() {
             {...register("confirm")}
           />
         </Field>
-        {serverError && <p className="text-sm text-red-600">{serverError}</p>}
+        {serverError && <p className="text-sm text-hot">{serverError}</p>}
         <button type="submit" disabled={isSubmitting} className="auth-submit">
           {isSubmitting ? "Creating…" : "Create account"}
         </button>
       </form>
-      <p className="mt-4 text-center text-sm text-slate-500">
+      <p className="mt-6 text-center text-sm text-ink-3">
         Already have an account?{" "}
-        <Link to="/login" className="font-medium text-brand-dark">
+        <Link to="/login" className="font-semibold text-accent hover:underline">
           Log in
         </Link>
       </p>

@@ -3,18 +3,28 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply bg-canvas text-ink font-sans antialiased;
 }
 
 @layer components {
   .auth-input {
-    @apply w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/30;
+    @apply w-full rounded-lg border border-hairline bg-surface px-3 py-2.5 text-sm text-ink placeholder:text-ink-4 outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/25;
   }
   .auth-submit {
-    @apply w-full rounded-lg bg-brand py-2.5 font-medium text-white transition hover:bg-brand-dark disabled:opacity-60;
+    @apply w-full rounded-lg bg-accent py-2.5 font-semibold text-accent-ink transition hover:bg-accent-dark disabled:opacity-60;
+  }
+  /* Anton is display-only: uppercase, never letter-spaced. */
+  .display {
+    @apply font-display uppercase tracking-normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
   }
 }
