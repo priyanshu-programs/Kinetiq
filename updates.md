@@ -219,3 +219,28 @@ Not a plan.md phase; done on user request to put the project on a real GitHub wo
 - **Branch protection on `main`:** PRs required, 0 approving reviews (a solo owner cannot approve their own PR), all three checks required and branches must be up to date, force-pushes and deletions blocked, `enforce_admins` off so the owner retains an escape hatch.
 - **Tagged `v0.1.0`** on green `main`.
 - **Verification:** all three checks green on `main` (Backend pytest, Backend PostgreSQL integration, Frontend vitest + build); backend suite 103 passed / 10 skipped on SQLite, 112 passed on PostgreSQL.
+
+## Phase 7 â€” Deployment completed and verified (2026-09-27)
+
+Supersedes the 2026-09-26 Phase 7 entry, whose completion claim was withdrawn. These are dated, hosted results, not configuration alone.
+
+- **Live URLs:** app https://frontend-alpha-wheat-qq5ex7zkhk.vercel.app, API https://kinetiq-api-ys16.onrender.com
+- **Render service created** (`srv-dasd55g473hc73fpka90`, Docker, free, Ohio, health check `/health`). No service had ever existed; the earlier hostname timeout was Render's wildcard edge with nothing behind it. Env vars set from `render.yaml` with a freshly generated production `JWT_SECRET` (not the local one) and `RUN_SEED=false`.
+- **Neon migrated on first boot** by the Dockerfile's `alembic upgrade head`: all 15 tables present via the direct connection.
+- **Vercel corrected:** `VITE_API_URL` pointed at the Render API, and 14 backend-only variables (`DATABASE_URL`, `JWT_SECRET`, `OPENROUTER_API_KEY` and friends) deleted from the frontend project where they did not belong. They are `type=sensitive` so their values are not readable via the API; a scan of all six deployed bundles found no secret material, since Vite only inlines `VITE_*`.
+- **Frontend bug fixed:** `api.ts` used `??` for the `VITE_API_URL` fallback, so a present-but-empty value produced `baseURL: ""` and every request silently hit the frontend's own origin. Now `||`.
+- **LLM timeout raised 12s -> 25s** after the deployed logs showed the primary 429-ing upstream in ~0.3s and the backup then exceeding the remaining budget, making every chat fall back. Verified `source: "llm"` afterwards.
+
+### Hosted verification (2026-09-27)
+- `/health` -> `{"status":"ok","llm_enabled":true}` in 1.3s.
+- CORS preflight from the Vercel origin returns 200 with a matching `access-control-allow-origin`.
+- Register -> login -> `/auth/me` -> start and finish a workout session (8 reps, avg form 86.25) against hosted Neon.
+- Re-read from a second independent login: same records.
+- **Full redeploy, then re-read: identical records, no loss and no reseed.**
+- Live chat through the deployed API returns `source: "llm"`.
+
+### Still outstanding
+- Cross-browser check was done with two independent API sessions, not two real browsers; camera capture over HTTPS and IoT WebSocket reconnect are unverified.
+- Neon idle-suspend wake-up, sensor-retention expiry, and the PostgreSQL export/restore-into-a-separate-database procedure are not yet demonstrated.
+- The model gate's injury prompt offered probable causes ("tracking issues, quad tightness") before its not-medical-advice note â€” a prompt tightening, not a code change.
+- A test account (`verify+57901@example.com`, id 7) remains in the production database as acceptance evidence.

@@ -23,7 +23,7 @@ services:
       - key: CORS_ORIGINS
         # Must be the real Vercel URL. Startup refuses a localhost origin in
         # production.
-        value: https://REPLACE-ME.vercel.app
+        value: https://frontend-alpha-wheat-qq5ex7zkhk.vercel.app
       - key: DATABASE_URL
         # Neon POOLED connection string (host contains "-pooler").
         sync: false
@@ -40,6 +40,10 @@ services:
         value: qwen/qwen3.8-27b:free
       - key: OPENROUTER_FALLBACK_MODEL
         value: nvidia/nemotron-3.5-lightning:free
+      - key: OPENROUTER_TIMEOUT_SECONDS
+        # 12s was measured as too tight: the primary 429s upstream in ~0.3s and
+        # the backup frequently needs longer, so every chat fell back.
+        value: "25"
       - key: OPENROUTER_DAILY_BUDGET
         # The free allowance is per OpenRouter account, not per app user.
         value: "40"
