@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Dumbbell } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
@@ -51,14 +52,14 @@ export function Login() {
             {...register("password")}
           />
         </Field>
-        {serverError && <p className="text-sm text-red-600">{serverError}</p>}
+        {serverError && <p className="text-sm text-hot">{serverError}</p>}
         <button type="submit" disabled={isSubmitting} className="auth-submit">
           {isSubmitting ? "Logging in…" : "Log in"}
         </button>
       </form>
-      <p className="mt-4 text-center text-sm text-slate-500">
+      <p className="mt-6 text-center text-sm text-ink-3">
         No account?{" "}
-        <Link to="/register" className="font-medium text-brand-dark">
+        <Link to="/register" className="font-semibold text-accent hover:underline">
           Create one
         </Link>
       </p>
@@ -78,11 +79,49 @@ export function AuthCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
-        <p className="mt-1 mb-6 text-sm text-slate-500">{subtitle}</p>
-        {children}
+    <div className="flex min-h-screen bg-canvas">
+      {/* Brand panel — typographic, matching the landing hero treatment. */}
+      <aside className="relative hidden w-1/2 overflow-hidden border-r border-hairline lg:block">
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(100% 70% at 30% 20%, rgba(195,255,150,0.12) 0%, rgba(23,23,23,0) 60%)",
+          }}
+        />
+        <div className="relative flex h-full flex-col justify-between p-12">
+          <Link to="/" className="flex items-center gap-2">
+            <Dumbbell className="h-5 w-5 text-accent" aria-hidden />
+            <span className="display text-lg leading-none text-ink">Kinetiq</span>
+          </Link>
+          <div>
+            <h2 className="display text-display-sm text-ink">
+              Discipline over
+              <br />
+              <span className="text-accent">motivation</span>
+            </h2>
+            <p className="mt-6 max-w-sm text-sm leading-relaxed text-ink-3">
+              Seven modules, one account. Pose runs on-device — camera frames never
+              leave your browser.
+            </p>
+          </div>
+        </div>
+      </aside>
+
+      <div className="flex w-full flex-col items-center justify-center px-4 py-12 lg:w-1/2">
+        <div className="w-full max-w-sm">
+          <Link
+            to="/"
+            className="mb-10 inline-flex items-center gap-2 text-xs text-ink-3 transition hover:text-accent lg:hidden"
+          >
+            <Dumbbell className="h-4 w-4 text-accent" aria-hidden />
+            <span className="display">Kinetiq</span>
+          </Link>
+          <h1 className="display text-3xl leading-none text-ink">{title}</h1>
+          <p className="mt-3 mb-8 text-sm text-ink-3">{subtitle}</p>
+          {children}
+        </div>
       </div>
     </div>
   );
@@ -99,9 +138,11 @@ export function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-medium text-slate-700">{label}</span>
+      <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">
+        {label}
+      </span>
       {children}
-      {error && <span className="mt-1 block text-xs text-red-600">{error}</span>}
+      {error && <span className="mt-1.5 block text-xs text-hot">{error}</span>}
     </label>
   );
 }
