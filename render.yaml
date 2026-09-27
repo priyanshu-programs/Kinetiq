@@ -1,0 +1,52 @@
+services:
+  - type: web
+    name: kinetiq-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    # Free instances sleep after 15 min of inactivity — warm the URL before a
+    # demo. They also cannot mount a persistent disk, which is why all durable
+    # data lives in Neon and nothing important is written to the filesystem.
+    plan: free
+    # Co-located with the Neon project (aws-us-east-2, Ohio) so every query
+    # avoids a cross-country round trip.
+    region: ohio
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        # Arms the fail-closed configuration check in app/config.py.
+        value: production
+      - key: JWT_SECRET
+        # Note: recreating the service regenerates this and invalidates every
+        # issued token, so sign in again after a recreate.
+        generateValue: true
+      - key: CORS_ORIGINS
+        # Must be the real Vercel URL. Startup refuses a localhost origin in
+        # production.
+        value: https://REPLACE-ME.vercel.app
+      - key: DATABASE_URL
+        # Neon POOLED connection string (host contains "-pooler").
+        sync: false
+      - key: DATABASE_URL_UNPOOLED
+        # Neon DIRECT connection string (no "-pooler"). Used by Alembic, which
+        # needs DDL and advisory locks that transaction pooling does not support.
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_MODEL
+        # Verify against https://openrouter.ai/api/v1/models before deploying.
+        # A withdrawn or priced model is rejected at startup and chat degrades
+        # to labelled basic replies until this value is changed.
+        value: qwen/qwen3.8-27b:free
+      - key: OPENROUTER_FALLBACK_MODEL
+        value: nvidia/nemotron-3.5-lightning:free
+      - key: OPENROUTER_DAILY_BUDGET
+        # The free allowance is per OpenRouter account, not per app user.
+        value: "40"
+      - key: NUDGE_RISK_THRESHOLD
+        value: "0.6"
+      - key: SENSOR_RETENTION_DAYS
+        value: "7"
+      - key: RUN_SEED
+        # Leave false: seeding a hosted database is not evidence of persistence.
+        value: "false"
