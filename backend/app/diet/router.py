@@ -1,3 +1,5 @@
+from datetime import date as date_type
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -103,7 +105,7 @@ def add_nutrition_log(
 
 @router.get("/nutrition/logs", response_model=list[NutritionLogOut])
 def list_nutrition_logs(
-    date: str | None = Query(default=None),
+    date: date_type | None = Query(default=None),
     limit: int = Query(default=50, ge=1, le=365),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
