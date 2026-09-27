@@ -5,11 +5,26 @@ The OpenRouter tests drive real httpx request building through
 JSON-decode handling are all exercised. No network is used.
 """
 
+import json
+import time
+
 import httpx
 import pytest
 
 from app.chat import llm, sentiment
 from app.config import settings
+
+
+class _DrippingStream(httpx.SyncByteStream):
+    """Yields a body in small pieces with a pause between each."""
+
+    def __init__(self, payload: bytes, chunk: int = 8, pause: float = 0.05):
+        self._payload, self._chunk, self._pause = payload, chunk, pause
+
+    def __iter__(self):
+        for i in range(0, len(self._payload), self._chunk):
+            time.sleep(self._pause)
+            yield self._payload[i : i + self._chunk]
 
 PRIMARY = "test/primary:free"
 BACKUP = "test/backup:free"
@@ -305,6 +320,31 @@ def test_timeout_falls_back(openrouter):
 
     openrouter(handler)
     assert llm.generate_reply("hi", None, "neutral").source == "fallback"
+
+
+def test_trickling_response_is_abandoned_at_the_deadline(openrouter, monkeypatch):
+    """A body that arrives in slow pieces must not outlive the budget.
+
+    httpx's read timeout only caps the gap *between* reads, so a stream that
+    keeps dripping never raises — observed live as a 12s budget taking 110s.
+    """
+    # Must exceed _MIN_ATTEMPT_SECONDS, or the attempt is skipped and the test
+    # would pass without ever reaching the network.
+    monkeypatch.setattr(settings, "openrouter_timeout_seconds", 3.0)
+    payload = json.dumps(_completion("too late to be useful")).encode()
+
+    def handler(request):
+        if request.url.path.endswith("/models"):
+            return httpx.Response(200, json=_catalogue([PRIMARY]))
+        # Each gap is 0.2s so no read timeout fires; the total is ~6s.
+        return httpx.Response(200, stream=_DrippingStream(payload, pause=0.2))
+
+    openrouter(handler)
+    started = time.monotonic()
+    reply = llm.generate_reply("hi", None, "neutral")
+    elapsed = time.monotonic() - started
+    assert reply.source == "fallback"
+    assert elapsed < 4.5, f"budget was 3s but the call ran {elapsed:.1f}s"
 
 
 # --- history endpoint ---------------------------------------------------------

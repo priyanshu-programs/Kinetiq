@@ -9,6 +9,7 @@ hard-fails offline or without an API key.
 
 from __future__ import annotations
 
+import json
 import time
 from typing import NamedTuple
 
@@ -205,7 +206,9 @@ def _leaks_reasoning(text: str) -> bool:
     return text.lower().startswith(("here's a thinking process", "thinking process:"))
 
 
-def _attempt(model: str, messages: list[dict], timeout: httpx.Timeout) -> _Attempt:
+def _attempt(
+    model: str, messages: list[dict], timeout: httpx.Timeout, deadline: float
+) -> _Attempt:
     payload = {
         "model": model,
         "messages": messages,
@@ -223,9 +226,26 @@ def _attempt(model: str, messages: list[dict], timeout: httpx.Timeout) -> _Attem
     started = time.monotonic()
     try:
         with _client(timeout) as client:
-            resp = client.post(
-                f"{_BASE_URL}/chat/completions", json=payload, headers=_headers()
-            )
+            # Streamed so the budget is a real wall-clock deadline. httpx's
+            # read timeout only caps the gap *between* bytes, and OpenRouter
+            # trickles data while a model is queued — a 12s budget was
+            # observed taking 110s because no single gap ever timed out.
+            with client.stream(
+                "POST", f"{_BASE_URL}/chat/completions", json=payload, headers=_headers()
+            ) as resp:
+                if resp.status_code >= 400:
+                    resp.read()  # error classification below needs the body
+                else:
+                    body = bytearray()
+                    for chunk in resp.iter_bytes():
+                        if time.monotonic() > deadline:
+                            logger.warning(
+                                "OpenRouter {} exceeded the {}s budget; abandoning it",
+                                model,
+                                settings.openrouter_timeout_seconds,
+                            )
+                            return _Attempt(None, stop=False)
+                        body.extend(chunk)
     except httpx.TimeoutException:
         logger.warning("OpenRouter {} timed out", model)
         return _Attempt(None, stop=False)
@@ -256,7 +276,7 @@ def _attempt(model: str, messages: list[dict], timeout: httpx.Timeout) -> _Attem
         return _Attempt(None, stop=False)
 
     try:
-        data = resp.json()
+        data = json.loads(bytes(body))
         text = (data["choices"][0]["message"]["content"] or "").strip()
     except (ValueError, KeyError, IndexError, TypeError) as exc:
         logger.warning("OpenRouter {} sent an unusable response: {}", model, exc)
@@ -329,7 +349,7 @@ def generate_reply(
         if deadline - time.monotonic() < _MIN_ATTEMPT_SECONDS:
             logger.warning("OpenRouter budget spent before trying {}", model)
             break
-        outcome = _attempt(model, messages, _remaining(deadline))
+        outcome = _attempt(model, messages, _remaining(deadline), deadline)
         if outcome.text:
             return Reply(outcome.text, "llm", model)
         if outcome.stop:
