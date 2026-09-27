@@ -1,4 +1,47 @@
-# AI Gym & Fitness Assistant — 5-Day Solo, Cost-Free Execution Plan
+# AI Gym & Fitness Assistant — Hosted MVP Execution Plan
+
+## Finalized revision — 2026-09-27
+
+**Status:** Planning decisions finalized; application changes, database migration, model evaluation, and hosted verification remain pending. This revision supersedes the initial hosted-storage and LLM decisions. Historical implementation results remain in `updates.md`.
+
+**Release target:** A public HTTPS college-submission project using ongoing free tiers: **Vercel Hobby + Render Free + Neon Free PostgreSQL + OpenRouter free models**. Paid upgrade options are acceptable; expiring trials, required credit purchases, and dependence on a running personal computer are excluded. Free tiers have quotas and cold starts; neither perpetual provider availability nor production uptime is promised.
+
+**Remaining work order:** PostgreSQL compatibility and Neon persistence → OpenRouter integration → restart-safe nudges and sensor retention → deployment correction → hosted acceptance checks. Existing functionality is retained. The original five-day estimates below describe the initial MVP effort, not a new deadline or an estimate of this remediation.
+
+### OpenRouter model decision and research
+
+Research checked on **2026-09-27**, including the public API catalogue. Current zero pricing is evidence of present pricing, not continuous historical availability or a promise that a model will remain free.
+
+| Model | Decision and evidence |
+|-------|-----------------------|
+| `qwen/qwen3.8-27b:free` | Primary candidate for concise fitness explanations, motivation, and profile-aware chat. Listed at zero input/output cost; supports configurable thinking. Published availability at research time was stronger than the selected backup. Fitness quality and latency still require live evaluation. |
+| `nvidia/nemotron-3.5-lightning:free` | Explicit zero-cost backup for primary-provider unavailability. Its lower observed availability makes it a backup rather than a reliability guarantee. |
+| `inclusionai/ling-3.0-flash-sante:free` | Research alternative only; health-focused, but released September 2026 with little history for assessing continuity. No automatic routing to it. |
+| `openrouter/free` | Excluded from the default chain: random selection does not enforce consistent model behaviour or the explicit non-Gemini allowlist. |
+
+Older `meta-llama/llama-3.3-70b-instruct:free` and `qwen/qwen3-4b:free` pages remained online but those IDs were absent from the live catalogue checked. Do not select a model solely because its descriptive page exists. No individual free model was established as permanently free or continuously available.
+
+Budget for **50 free requests per UTC day and 20 per minute across the shared OpenRouter account**, subject to provider capacity and current account limits. These limits are not per app user; switching models or keys does not bypass the daily account quota. This is a controlled submission demo, not unrestricted classroom-wide chat. No paid top-up is required or planned.
+
+### Service limits and sources
+
+- Neon Free: currently **0.5 GB database storage, 100 CU-hours per project/month, and 5 GB public network transfer per project/month**. Compute scales to zero after five idle minutes; application connections must recover on wake-up. Store all user records in PostgreSQL, independent of the API filesystem. See [Neon free limits](https://github.com/neondatabase/website/blob/main/content/faqs/free-plan-limits-and-quotas.md) and [connection guidance](https://github.com/neondatabase/website/blob/main/content/docs/get-started/connect-neon.md).
+- Render Free: no persistent disk, ephemeral local files, inactivity sleep and cold starts. Its free PostgreSQL expires after 30 days and is excluded. See [Render free services](https://render.com/docs/free).
+- Vercel Hobby is the chosen frontend host for this personal, noncommercial project. Cloudflare Pages is a valid alternative, not a required migration. See [Vercel Hobby](https://vercel.com/docs/plans/hobby) and [Cloudflare Pages limits](https://developers.cloudflare.com/pages/platform/limits/).
+- OpenRouter: [live model catalogue](https://openrouter.ai/api/v1/models), [Qwen primary](https://openrouter.ai/qwen/qwen3.8-27b:free), [NVIDIA backup](https://openrouter.ai/nvidia/nemotron-3.5-lightning:free), [Ling research alternative](https://openrouter.ai/inclusionai/ling-3.0-flash-sante:free), [free routing and availability limitations](https://openrouter.ai/docs/guides/routing/routers/free-router), [free rate limits](https://openrouter.zendesk.com/hc/en-us/articles/39501163636379-OpenRouter-Rate-Limits-What-You-Need-to-Know), and [account quota inspection](https://openrouter.ai/docs/api_reference/limits). Recheck pricing, availability, and account quotas before deployment and evaluation.
+
+### Submission scope and evidence
+
+The original PRD was not available in this review; its digest below is the available requirements baseline. Full grading compliance requires checking the original PRD, particularly whether actual hardware, MQTT, or live gym discovery is mandatory.
+
+- Trainer: browser pose detection and form rules for squat, pushup, and bicep curl; camera accuracy must be demonstrated.
+- Performance: calculated scores and stored trends, not clinically validated performance measurements.
+- Diet: deterministic BMI/TDEE/macros and template meals; LLM text explains and motivates rather than replacing the calculations.
+- Habits: synthetic-bootstrap prediction plus accumulated logs; no claim of validated real-world prediction accuracy.
+- IoT: labelled in-process simulation over WebSockets; physical sensors and MQTT integration remain backlog items.
+- Recommendations: ranked seeded gym catalogue with optional city geocoding; no claim of live nearby-gym discovery or a complete training-program planner.
+
+Browser localStorage currently holds the login token only; it is not the source of truth for fitness records. Retain that documented auth tradeoff for this revision; cookie-based auth remains separate backlog work.
 
 ## Context
 
@@ -6,7 +49,7 @@
 
 That triple constraint (full scope · solo · 5 days · free) cannot produce a production system. It *can* produce a **coherent, demoable MVP** where every one of the 7 modules works end-to-end at core fidelity, sharing one codebase, one auth system, and one dashboard. This plan deliberately swaps the heavy "proposed" stack for free, zero-ops equivalents that a single person can stand up fast, and flags exactly what was traded away so it can be upgraded later.
 
-**Intended outcome:** a running web app where a user can sign up, do a webcam-tracked workout with live rep counting and form feedback, get a performance score, chat with an AI dietician for a BMI-based plan, see habit/skip predictions and nudges, watch live (simulated) smart-gym sensor data, and receive gym/program recommendations — all on free infrastructure, deployable to free tiers or run locally for the demo.
+**Intended outcome:** a publicly hosted HTTPS web app where a user can sign up, do a webcam-tracked workout with live rep counting and form feedback, get a performance score, generate a personalized diet plan, chat with a fitness coach, see habit/skip predictions and in-app nudges, watch simulated smart-gym data, and receive seeded gym recommendations. User records persist in Neon across API sleep, restart, redeployment, and access from another browser. Local execution is for development, not a substitute for the hosted submission.
 
 ---
 
@@ -16,17 +59,17 @@ That triple constraint (full scope · solo · 5 days · free) cannot produce a p
 - **Core purpose (1 sentence):** A unified web app that acts as an AI personal trainer, dietician, motivator, and fitness data manager — combining computer-vision workout detection, LLM diet/chat coaching, behavioral habit prediction, simulated smart-gym IoT, and a recommender.
 - **Target users:** Individual fitness users (beginners → intermediate) wanting at-home guided workouts, diet help, and progress tracking; secondarily an admin viewing analytics.
 - **Tech stack (decided for this build — see rationale in Phase 0/1):**
-  - Frontend: **React 18 + Vite 5 + TypeScript + Tailwind CSS 3**, React Router 6, Zustand (state), Recharts (charts), `@mediapipe/tasks-vision` (in-browser pose).
-  - Backend: **Python 3.11 + FastAPI + Uvicorn**, SQLAlchemy 2, Pydantic v2, python-jose (JWT), passlib[bcrypt], APScheduler, paho-mqtt, scikit-learn, numpy, pandas.
-  - DB: **SQLite** (dev/demo) via SQLAlchemy — zero-config, free. (Upgrade path: Supabase/Postgres free tier.)
-  - LLM: **Google Gemini API free tier** (`gemini-flash` family) with a **rule-based offline fallback** so the app works with no key.
-  - IoT: **simulated** — a Python MQTT publisher + Eclipse Mosquitto (free, open-source) or an in-process simulator; streamed to UI via WebSocket.
+  - Frontend: **React 19 + Vite 8 + TypeScript + Tailwind CSS 3**, React Router 7, Zustand (state), Recharts (charts), `@mediapipe/tasks-vision` (in-browser pose); retain the existing package/lockfile versions.
+  - Backend: **Python 3.12 + FastAPI + Uvicorn**, SQLAlchemy 2, Alembic, psycopg, Pydantic v2, python-jose (JWT), passlib[bcrypt], numpy, vaderSentiment, httpx.
+  - DB: **Neon Free PostgreSQL**, required for the hosted release. SQLite is permitted only for isolated tests/local experiments; integration verification uses PostgreSQL.
+  - LLM: **OpenRouter free models** — Qwen3.8 27B primary, Nemotron 3.5 Lightning backup, then a visibly labelled rule-based fallback. No Gemini or paid-model fallback.
+  - IoT: **simulated** in-process; WebSockets to the UI, bounded raw-reading history in Neon. MQTT/hardware are deferred.
   - Recommender: content-based scoring over a **static seed dataset**; optional free OpenStreetMap **Nominatim** geocoding (no key, no cost).
-  - Storage: local filesystem (free). Deploy: Vercel (frontend, free) + Render/HF Spaces (backend, free) or local `docker-compose`.
+  - Storage/deploy: **Neon PostgreSQL + Vercel Hobby frontend + Render Free backend**. No durable user data on the API filesystem. Add object storage only if file uploads enter scope; webcam video stays on the device.
   - Testing: pytest + httpx (backend), Vitest + React Testing Library (frontend), Playwright (E2E).
 - **Key constraints:**
-  - **Budget:** $0 — every tool must have a free tier or be open-source. No AWS S3, no Google Maps API, no paid LLM, no real IoT hardware.
-  - **Timeline:** ~4–5 working days, solo.
+  - **Budget:** $0 on ongoing free service tiers within quotas; paid upgrade options are acceptable, time-limited trials and required credits are not. No paid LLM or real IoT hardware is required for this MVP.
+  - **Timeline:** original ~4–5 working days, solo; additional remediation and hosted validation are pending and not covered by that historical estimate.
   - **Platform:** web (desktop browser primary; webcam required for the trainer module).
   - **Compliance:** webcam/biometric pose + health data → privacy-by-design (local processing, consent, no PII leakage). Not a medical device — disclaimer required.
 - **Ambiguities & assumptions made (flagged for confirmation):**
@@ -34,14 +77,14 @@ That triple constraint (full scope · solo · 5 days · free) cannot produce a p
   2. **IoT = fully simulated** (no ESP32/sensors), per "cost-free." ⚠️ Confirm no real hardware is needed for grading.
   3. **Single deployable monolith** (one FastAPI service + one React SPA), not microservices — fastest for solo.
   4. **CV runs in the browser** (MediaPipe Tasks JS), not server-side TensorFlow/PyTorch — avoids needing a GPU server (which isn't free). Server only stores results.
-  5. **Free LLM (Gemini) instead of OpenAI**; app degrades gracefully to rule-based responses if no API key.
+  5. **OpenRouter explicit free-model chain**; no-key/quota/provider failures produce a labelled rule-based response, which does not count as proof of working LLM integration.
   6. **No native mobile app** — responsive web only.
-  7. **SQLite over MongoDB/Postgres** for the demo; data volume is tiny.
+  7. **Neon PostgreSQL is mandatory for hosted user data**, even at small demo volume.
   8. **Habit/skip model trained on synthetic + accumulated user logs** (no real historical dataset exists yet).
   9. **"Nearby gyms"** uses a seeded dataset (+ optional free geocoding), since a live paid maps/places API is excluded.
   10. **Admin dashboard = a protected analytics route**, not a separate app.
 - **Total features identified:** 7 PRD modules → mapped to **7 functional app features** + cross-cutting (auth, dashboard, analytics).
-- **Complexity rating:** **Very High** (intrinsically) — 7 heterogeneous AI/IoT subsystems (CV, LLM, ML classification, real-time IoT, recommender) spanning the full stack. **Tamed to High-but-feasible** for a 5-day solo build only by: in-browser CV, free managed LLM, SQLite, simulated IoT, static recommender data, and MVP scoping per module.
+- **Complexity rating:** **Very High** (intrinsically) — 7 heterogeneous AI/IoT subsystems spanning the full stack. MVP scope uses browser CV, free managed LLMs, managed PostgreSQL, simulated IoT, and static recommendations. Deployment and persistence must be verified rather than inferred from local tests.
 
 ---
 
@@ -57,7 +100,7 @@ That triple constraint (full scope · solo · 5 days · free) cannot produce a p
 | **Day 5** | Phases 5–7 | Testing, security hardening, deploy, demo polish |
 | *Phase 8* | post-launch | Backlog / iteration (not in the 5 days) |
 
-> Durations below are stated in **hours** within these days. Total ≈ **40–48 focused hours**.
+> Historical initial-MVP estimates below total approximately **40–48 focused hours**. They exclude the finalized Neon/OpenRouter remediation and hosted verification; they are not current completion claims.
 
 ---
 
@@ -75,13 +118,13 @@ That triple constraint (full scope · solo · 5 days · free) cannot produce a p
 2. Backend `GET /health` returns `{"status":"ok"}` via Uvicorn.
 3. Frontend Vite dev server renders a "Hello" page that successfully calls `/health`.
 4. Git initialized with first commit; free remote (GitHub) connected.
-5. `docker-compose.yml` exists to run backend + Mosquitto (used later) for one-command local bring-up.
+5. Optional `docker-compose.yml` provides local backend bring-up; the existing Mosquitto scaffold is reserved for future MQTT work and is not a release dependency.
 
 ### Architecture & Design Decisions
 - **Repo layout → Monorepo vs two repos → Monorepo → Why:** one person, shared types/docs, simpler deploy coordination.
 - **Backend framework → FastAPI vs Flask/Django → FastAPI → Why:** async (needed for WebSocket IoT stream), auto OpenAPI docs, Pydantic validation built in, minimal boilerplate.
 - **Frontend tooling → Vite vs Next.js → Vite SPA → Why:** no SSR needed; faster cold start, simpler for a webcam-heavy client-side app; one fewer runtime to deploy.
-- **DB → SQLite vs Mongo/Postgres → SQLite → Why:** zero install/ops, file-based, free, ample for demo; SQLAlchemy keeps a clean swap path to Postgres.
+- **DB → Neon PostgreSQL → Why:** ongoing free managed database with durable user records independent of the sleeping API service; use SQLAlchemy and Alembic.
 - **Charts → Recharts vs D3/Plotly → Recharts → Why:** React-native API, fast to build, free; D3 is too low-level for a 5-day budget.
 
 ### Task Breakdown
@@ -113,7 +156,7 @@ That triple constraint (full scope · solo · 5 days · free) cannot produce a p
 |-------|--------|
 | Description | Vite React TS app, Tailwind, router, one page calling `/health`. |
 | Subtasks | (a) `npm create vite@latest -- --template react-ts`; (b) install Tailwind 3 + configure; (c) install `react-router-dom`, `zustand`, `axios`; (d) `api.ts` axios instance w/ base URL from `VITE_API_URL`; (e) Home page shows backend health. |
-| Tech/Tools | Vite 5, React 18, TS, Tailwind 3, axios |
+| Tech/Tools | Existing Vite/React versions, TS, Tailwind 3, axios |
 | File(s) | `/frontend/src/lib/api.ts`, `/frontend/src/pages/Home.tsx`, `/frontend/tailwind.config.js` |
 | Effort | 1h |
 | Deliverable | Vite dev page shows "backend: ok" |
@@ -122,12 +165,12 @@ That triple constraint (full scope · solo · 5 days · free) cannot produce a p
 #### Task 0.4 — Local orchestration scaffold
 | Field | Detail |
 |-------|--------|
-| Description | docker-compose for backend + Mosquitto broker (used by IoT phase); `.env.example`. |
-| Subtasks | (a) `docker-compose.yml` with `backend` + `mosquitto` services; (b) `mosquitto.conf` (anonymous local listener); (c) `.env.example` listing every var (`VITE_API_URL`, `JWT_SECRET`, `GEMINI_API_KEY`, `MQTT_HOST`...). |
-| Tech/Tools | Docker, Eclipse Mosquitto (free) |
+| Description | Optional local backend orchestration and the hosted configuration contract; existing broker scaffold is backlog-only. |
+| Subtasks | (a) Configure backend with a development database separate from the submitted data; (b) keep Mosquitto optional for future MQTT work; (c) document `VITE_API_URL`, `CORS_ORIGINS`, `JWT_SECRET`, `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`, `OPENROUTER_FALLBACK_MODEL`, `SENSOR_RETENTION_DAYS`. |
+| Tech/Tools | Docker (optional), Neon PostgreSQL |
 | File(s) | `/docker-compose.yml`, `/mosquitto/mosquitto.conf`, `/.env.example` |
 | Effort | 1h |
-| Deliverable | `docker compose up` starts backend + broker |
+| Deliverable | Optional local backend boots without a broker dependency; hosted environment contract documented |
 | Blocked by | 0.2 |
 
 ### Testing Requirements
@@ -137,14 +180,14 @@ That triple constraint (full scope · solo · 5 days · free) cannot produce a p
 ### Acceptance Criteria
 - [ ] `uvicorn` and `vite` both run locally.
 - [ ] Frontend successfully fetches backend `/health`.
-- [ ] `docker compose up` launches backend + Mosquitto.
+- [ ] Optional Docker workflow launches the backend; a broker is not required by the in-process simulator.
 - [ ] Repo pushed to GitHub; `.env` is gitignored; `.env.example` complete.
 
 ### Risks & Mitigations
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|-----------|
 | CORS blocks frontend→backend | High | Low | Configure `CORSMiddleware` with explicit Vite origin on day 0 |
-| Docker not installed | Med | Low | Make Docker optional; document bare `uvicorn` + local Mosquitto/in-process sim fallback |
+| Docker not installed | Med | Low | Document bare `uvicorn` with a development database and the in-process simulator |
 
 ### Hand-off to Next Phase
 Running backend at `:8000`, frontend at `:5173`, env contract in `.env.example`, axios client, Tailwind ready.
@@ -168,8 +211,8 @@ Running backend at `:8000`, frontend at `:5173`, env contract in `.env.example`,
 5. Central error handling + request validation in place backend-wide.
 
 ### Architecture & Design Decisions
-- **Auth → session cookies vs JWT → JWT (access token, short-lived) → Why:** stateless, simple for SPA + single backend; store in memory + refresh on load (avoid localStorage XSS where feasible; document tradeoff).
-- **ORM → raw SQL vs SQLAlchemy → SQLAlchemy 2.0 (typed) → Why:** clean models, easy Postgres swap, migrations via Alembic.
+- **Auth → retain JWT access-token flow:** current token persistence uses localStorage; document the XSS tradeoff. Fitness records live in Neon; httpOnly cookie/refresh-token work remains backlog.
+- **ORM → SQLAlchemy 2.0 + Alembic + psycopg:** retain models and API contracts, add PostgreSQL compatibility and migration verification.
 - **State mgmt → Redux vs Zustand → Zustand → Why:** minimal boilerplate, fast for solo; holds auth + cross-module user profile.
 - **Validation → manual vs Pydantic v2 → Pydantic v2 → Why:** request/response schemas double as OpenAPI + guardrails.
 
@@ -179,11 +222,11 @@ Running backend at `:8000`, frontend at `:5173`, env contract in `.env.example`,
 | Field | Detail |
 |-------|--------|
 | Description | SQLAlchemy models + Alembic migrations for all core entities. |
-| Subtasks | (a) DB session/engine (`db.py`); (b) models: User, Profile, WorkoutSession, RepEvent, PerformanceScore, DietPlan, NutritionLog, ChatMessage, HabitLog, Nudge, Device, SensorReading, GymRecommendation; (c) Alembic init + first migration; (d) seed script for demo user + gyms dataset. |
-| Tech/Tools | SQLAlchemy 2, Alembic, SQLite |
+| Subtasks | (a) Add psycopg and TLS PostgreSQL connections: pooled `DATABASE_URL` for runtime, direct `DATABASE_URL_UNPOOLED` for Alembic; (b) retain the 13 core models and validate enum/JSON/date behaviour and migrations on PostgreSQL; (c) bound SQLAlchemy connections and enable stale-connection recovery after Neon idle suspension; (d) idempotent demo seeding, never overwrite real records; (e) preserve any existing user data through an explicit export/import before cutover. |
+| Tech/Tools | SQLAlchemy 2, Alembic, psycopg, Neon PostgreSQL |
 | File(s) | `/backend/app/db.py`, `/backend/app/models/*.py`, `/backend/alembic/`, `/backend/app/seed.py` |
 | Effort | 2.5h |
-| Deliverable | `alembic upgrade head` builds schema; seed runs |
+| Deliverable | `alembic upgrade head` builds PostgreSQL schema; repeat seeding preserves existing records; application reconnects after database idle suspension |
 | Blocked by | 0.2 |
 
 #### Task 1.2 — Auth (register/login/JWT/me)
@@ -269,7 +312,7 @@ Indexes: User.email, WorkoutSession.user_id, RepEvent.session_id, NutritionLog(u
 ### Risks & Mitigations
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|-----------|
-| Token storage XSS | Med | High | In-memory token + re-auth on load; sanitize inputs; document cookie upgrade |
+| Token storage XSS | Med | High | Document current localStorage-token tradeoff; avoid unsafe HTML rendering; retain cookie upgrade in backlog |
 | Schema churn breaks later modules | Med | Med | Define all models now in 1.1; use Alembic for changes |
 
 ### Hand-off to Next Phase
@@ -394,17 +437,17 @@ Workout/session + performance APIs and data feeding the dashboard and habit/reco
 ### Objectives
 1. AI Dietician computes BMI/TDEE → diet plan + macros + grocery list; nutrition logging.
 2. Chatbot (Virtual Gym Buddy) answers via free LLM with sentiment-aware motivation; offline fallback.
-3. Habit Tracker predicts skip-risk (scikit-learn) and issues scheduled nudges.
+3. Habit Tracker predicts skip-risk (NumPy logistic regression) and creates daily in-app nudges on user visits, including after API sleep/restart.
 4. Smart Gym IoT: simulated devices stream live sensor data to the UI via WebSocket.
-5. Recommender suggests gyms/programs from seed data scored against the user's goal/location.
+5. Recommender ranks the seeded gym catalogue against the user's goal/location; live discovery and a complete program planner are outside this MVP.
 
 ### Architecture & Design Decisions
 - **Diet engine → pure LLM vs deterministic calc + LLM narration → calc (Mifflin-St Jeor TDEE) + LLM/templated meals → Why:** correctness for numbers, free-tier safe, works offline.
-- **LLM provider → OpenAI vs Gemini free vs local Ollama → Gemini free tier (primary) + rule-based fallback → Why:** $0, no local GPU; fallback guarantees the demo never hard-fails.
+- **LLM provider → OpenRouter explicit free models:** `qwen/qwen3.8-27b:free` primary, `nvidia/nemotron-3.5-lightning:free` backup, then labelled rule-based fallback. Use backend httpx; no paid models, paid plugins, random free router, or Gemini. Model choices are current candidates subject to the live evaluation gate below.
 - **Sentiment → cloud API vs local VADER → VADER (`vaderSentiment`) → Why:** free, offline, instant; good enough for tone-adaptive replies.
-- **Skip prediction → deep model vs LogisticRegression → LogisticRegression on (weekday, time_of_day, recent_completion_rate, streak) → Why:** tiny data, explainable, trains in ms; retrains on user logs.
-- **Nudges → realtime vs APScheduler cron → APScheduler in-process → Why:** free, no external queue; evaluates risk daily and writes Nudge rows.
-- **IoT → real MQTT broker + simulated publisher vs in-process sim → MQTT (Mosquitto) + Python simulator, WebSocket to UI; in-process fallback → Why:** demonstrates real MQTT pattern from PRD while staying free; fallback if no broker.
+- **Skip prediction → NumPy logistic regression** on weekday, time_of_day, recent_completion_rate, and streak; retain synthetic bootstrap and explainable factors, without claiming validated predictive accuracy.
+- **Nudges → daily catch-up on dashboard/habits visits:** evaluate the current user's risk and write at most one daily nudge, with a database-backed idempotency guard that survives restarts and dismissal. Do not require the API process to run uninterrupted for 24 hours. Guaranteed notifications while a user is absent are backlog work.
+- **IoT → in-process simulator + WebSockets:** simulate only for connected users; persist sampled readings in Neon, with configurable seven-day raw-reading retention. No MQTT claim for this implementation.
 - **Recommender → live places API vs seed dataset + content scoring → seed JSON + cosine/weighted match (+ optional free Nominatim geocode) → Why:** no paid maps; deterministic, demoable.
 
 ### Task Breakdown
@@ -424,19 +467,25 @@ Workout/session + performance APIs and data feeding the dashboard and habit/reco
 | Field | Detail |
 |-------|--------|
 | Description | LLM chat with user context + sentiment-adapted tone; graceful offline fallback. |
-| Subtasks | (a) `llm.py` wrapper: Gemini call w/ system prompt (fitness coach, safety disclaimer, user profile context); (b) try/except → rule-based fallback (intents: motivation, diet Q, workout Q); (c) VADER sentiment per user msg → tone modifier + stored; (d) `POST /chat` (persist ChatMessage), `GET /chat/history`; (e) Chat UI (bubbles, typing indicator, send). |
-| Tech/Tools | google-generativeai (free tier), vaderSentiment, FastAPI |
+| Subtasks | (a) Backend httpx call to `https://openrouter.ai/api/v1/chat/completions` with server-held key, system prompt, and necessary profile context; (b) explicit primary/backup free-model allowlist with bounded timeouts and no paid fallback; (c) quota-aware fallback for missing key, account exhaustion, unavailable models, invalid/empty responses, and timeouts; (d) retain VADER tone, stored ChatMessage history, `POST /chat`, `GET /chat/history`, and existing response contract; (e) visible basic-reply badge when `source` is `fallback`; (f) deployment pricing check and live model evaluation. |
+| Tech/Tools | OpenRouter free API via httpx, vaderSentiment, FastAPI |
 | File(s) | `/backend/app/chat/llm.py`, `/backend/app/chat/router.py`, `/frontend/src/features/chat/ChatPage.tsx` |
 | Effort | 3h |
 | Deliverable | Working motivational chatbot (online + offline) |
 | Blocked by | 1.2 |
 
+**LLM integration contract:** `OPENROUTER_API_KEY` stays in backend secrets; `OPENROUTER_MODEL=qwen/qwen3.8-27b:free`; `OPENROUTER_FALLBACK_MODEL=nvidia/nemotron-3.5-lightning:free`. Preserve `POST /chat` output `{reply, sentiment, source}` with `source: "llm" | "fallback"`. Include a bounded recent history from the authenticated user's stored messages for follow-up context. Send only necessary fitness context, excluding email, account identifiers, credentials, and webcam images; disclose external processing and review selected provider data policies before live use. Keep diet calculations in deterministic application code.
+
+**Free-only operation:** validate selected IDs and zero prompt/completion pricing against the live catalogue before deployment; fail closed to basic replies when configuration cannot satisfy free-only operation. Keep provider price caps at zero where supported and never substitute an unsuffixed paid ID. Disable paid plugins. Record returned model, latency, and usage/cost metadata without logging secrets or full private prompts. Treat account-wide quota exhaustion as a fallback condition, not a reason to cycle through models. Provider-specific failures may try the named backup within the total request timeout. Do not retry indefinitely or require a credit top-up.
+
+**Model evaluation gate (pending):** run the same six prompts against each named model: motivation after missing workouts, a beginner routine, vegetarian diet preferences, a follow-up using conversation context, an injury-related request, and an extreme weight-loss request. Verify concise relevant answers, preference/context adherence, no diagnosis or unsafe instructions, zero reported cost, and completion within the configured timeout. Record observed latency and fallback frequency. This small evaluation is a demo fitness check, not medical validation or evidence of long-term model availability; a failed candidate blocks LLM sign-off until the plan's candidate selection is revised.
+
 #### Task 3.3 — Habit Tracker (skip prediction + nudges)
 | Field | Detail |
 |-------|--------|
 | Description | Log habits, predict skip-risk, schedule nudges. |
-| Subtasks | (a) `POST /habits/logs`, `GET /habits` calendar; (b) feature builder + LogisticRegression (sklearn) with synthetic-bootstrap then user data; (c) `GET /habits/risk` → today's skip probability; (d) APScheduler daily job writes Nudge when risk>threshold; (e) `GET /nudges`, `POST /nudges/{id}/dismiss`; (f) UI: streak calendar, risk gauge, nudge banner. |
-| Tech/Tools | scikit-learn, pandas, APScheduler |
+| Subtasks | (a) `POST /habits/logs`, `GET /habits` calendar; (b) retain NumPy logistic regression with synthetic bootstrap then user data; (c) `GET /habits/risk`; (d) dashboard/habits visit triggers current-user daily risk evaluation, database-backed idempotency and nudge creation above threshold; (e) retain nudges/dismiss APIs; (f) test duplicate visits, dismissal, concurrent requests, and backend restarts. |
+| Tech/Tools | NumPy, FastAPI, PostgreSQL |
 | File(s) | `/backend/app/habits/model.py`, `/backend/app/habits/router.py`, `/backend/app/habits/scheduler.py`, `/frontend/src/features/habits/HabitsPage.tsx` |
 | Effort | 3h |
 | Deliverable | Skip-risk score + automated nudges |
@@ -445,23 +494,23 @@ Workout/session + performance APIs and data feeding the dashboard and habit/reco
 #### Task 3.4 — Smart Gym IoT (simulated stream)
 | Field | Detail |
 |-------|--------|
-| Description | Simulated devices publish sensor data over MQTT; backend bridges to WebSocket; UI live dashboard + adaptive suggestions. |
-| Subtasks | (a) `simulator.py` publishes heart_rate/speed/resistance/reps to MQTT topics on interval; (b) backend MQTT subscriber (paho) → store SensorReading + push to WS; (c) `WS /ws/iot` broadcasts readings; (d) rule engine: suggest rest/intensity from HR zones; (e) in-process fallback if no broker; (f) UI: device cards, live line charts, suggestion banner. |
-| Tech/Tools | paho-mqtt, Mosquitto, FastAPI WebSocket, Recharts |
-| File(s) | `/backend/app/iot/simulator.py`, `/backend/app/iot/bridge.py`, `/backend/app/iot/ws.py`, `/frontend/src/features/iot/IotPage.tsx` |
+| Description | In-process simulated readings streamed over WebSockets, with sampled database history and adaptive suggestions. |
+| Subtasks | (a) Generate readings only for connected users; (b) store sampled SensorReading rows in Neon and stream live values; (c) retain authenticated `WS /ws/iot` and reconnect UI; (d) rule-based rest/intensity suggestions; (e) `SENSOR_RETENTION_DAYS=7`, prune expired raw readings on simulator activation and periodically while active so cleanup does not require an always-on server; (f) label all sensor data as simulated. |
+| Tech/Tools | Python asyncio, FastAPI WebSocket, Neon PostgreSQL, Recharts |
+| File(s) | `/backend/app/iot/simulator.py`, `/backend/app/iot/ws.py`, `/frontend/src/features/iot/IotPage.tsx` |
 | Effort | 3h |
 | Deliverable | Live (simulated) sensor dashboard + suggestions |
 | Blocked by | 0.4, 1.1 |
 
-#### Task 3.5 — Gym Recommender & Planner
+#### Task 3.5 — Seeded Gym Recommender
 | Field | Detail |
 |-------|--------|
-| Description | Score seed gyms/programs against user goal + (optional) location. |
+| Description | Score the seeded gym catalogue against user goal + (optional) location. |
 | Subtasks | (a) `gyms.json` seed (name, lat/lng, tags, price=free/paid flag); (b) optional Nominatim geocode of user city (free, rate-limited, cached); (c) content scoring (goal/tags match + distance); (d) `GET /recommendations`; (e) UI: ranked cards w/ match % + reason, map-less list (or free Leaflet/OSM tiles). |
 | Tech/Tools | Python, httpx (Nominatim), optional Leaflet + OSM tiles (free) |
 | File(s) | `/backend/app/reco/service.py`, `/backend/app/reco/router.py`, `/frontend/src/features/reco/RecoPage.tsx` |
 | Effort | 2h |
-| Deliverable | Ranked gym/program recommendations |
+| Deliverable | Ranked seeded gym recommendations, clearly distinguished from live gym discovery |
 | Blocked by | 1.1 |
 
 ### API Contracts (selected)
@@ -481,23 +530,23 @@ Workout/session + performance APIs and data feeding the dashboard and habit/reco
 
 ### Testing Requirements
 - Unit: BMI/TDEE/macro math vs known values; VADER tone mapping; skip-model output ∈[0,1]; reco scoring monotonic with match.
-- Integration: diet plan persists; chat fallback path triggers when LLM key absent; nudge job creates rows; MQTT message → SensorReading; reco endpoint returns sorted list.
+- Integration: diet plan persists in PostgreSQL; OpenRouter primary/backup and basic fallback paths work; visits create idempotent daily nudges after restart; simulated readings persist with retention; reco endpoint returns sorted catalogue results.
 - E2E: generate diet plan; send chat + get reply; log habit → see streak; open IoT → see live values; view recommendations.
 - Edge: LLM timeout/quota → fallback; no profile → diet 400 with friendly UI; WS disconnect → auto-reconnect; empty habit history → cold-start prediction.
 
 ### Acceptance Criteria
 - [ ] Diet plan with correct BMI/TDEE, macros, grocery list generated and saved.
-- [ ] Chatbot replies online (Gemini) and offline (fallback), tone shifts with sentiment.
-- [ ] Skip-risk score shown; at least one nudge auto-generated.
+- [ ] Chatbot returns a verified zero-cost OpenRouter reply; both selected models pass the evaluation gate; quota/no-key/provider failure produces a labelled basic reply.
+- [ ] Skip-risk score shown; a qualifying user's visit creates one daily nudge even after server restart, without duplicates after dismissal/revisit.
 - [ ] IoT page shows live updating (simulated) sensor charts + a suggestion.
 - [ ] Recommendations ranked with match % and reason.
 
 ### Risks & Mitigations
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|-----------|
-| LLM free-tier quota/latency | High | Med | Cache, rate-limit, robust rule-based fallback, short prompts |
+| OpenRouter quota/latency/model withdrawal | High | Med | Shared-account quota accounting, explicit free primary/backup, bounded timeouts, short prompts, and labelled basic fallback; no permanence claim |
 | Tiny/no training data for skip model | High | Med | Bootstrap with synthetic data; show "learning…" until enough logs |
-| MQTT broker not running in demo | Med | Med | In-process simulator fallback; health check |
+| Sensor history consumes Neon allowance | Med | Med | Generate only during active use, sample persistence, seven-day raw-reading retention, monitor storage |
 | Nominatim rate limits / offline | Med | Low | Cache results; default to seed distances if geocode fails |
 | Giving unsafe health advice | Med | High | System-prompt guardrails + visible "not medical advice" disclaimer |
 
@@ -581,8 +630,8 @@ Complete feature set behind one dashboard → ready for full test + hardening pa
 #### Task 5.1 — Backend test suite
 | Field | Detail |
 |-------|--------|
-| Description | pytest with test SQLite + httpx client over the APIs built in 1–4. |
-| Subtasks | (a) fixtures (test DB, auth token); (b) auth/diet/workout/habit/reco tests; (c) LLM fallback test (no key); (d) coverage report. |
+| Description | pytest unit tests plus PostgreSQL migration/API integration tests, with httpx clients over the APIs built in 1–4. SQLite may remain for isolated tests only. |
+| Subtasks | (a) Separate test database and auth fixtures, never the submitted user database; (b) PostgreSQL migration, enums/JSON/dates, auth/diet/workout/habit/reco tests; (c) mocked OpenRouter primary/backup, quota, timeout, malformed reply and free-only rejection tests; (d) nudge idempotency/restart and sensor retention tests; (e) coverage report. |
 | Tech/Tools | pytest, httpx, coverage |
 | File(s) | `/backend/tests/*` |
 | Effort | 1.5h |
@@ -605,6 +654,8 @@ Complete feature set behind one dashboard → ready for full test + hardening pa
 
 ### Acceptance Criteria
 - [ ] `pytest` and `vitest` pass; Playwright golden path passes.
+- [ ] PostgreSQL integration and fresh-schema migration checks pass on a separate test database; no test deletes or resets submitted user records.
+- [ ] Live evaluation of both selected OpenRouter models is recorded separately from mocked CI tests and historical test counts.
 - [ ] Manual QA checklist (per module: loading/empty/error/success) signed off.
 
 ### Risks & Mitigations
@@ -680,32 +731,33 @@ Secure, validated, indexed app → deploy.
 ## PHASE 7 — DEPLOYMENT & DEVOPS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  Goal:           App reachable on the public internet (HTTPS) via free tiers, or one-command local for the demo.
-  Duration:       ~2 hours (Day 5)
+  Goal:           Public HTTPS frontend and API, durable Neon user data, and verified end-to-end submission on ongoing free tiers.
+  Duration:       Original estimate ~2 hours; remediation and hosted verification must be completed separately.
   Prerequisites:  Phase 6
   Who:            Solo full-stack dev
 
 ### Architecture & Design Decisions
-- **Hosting → paid vs free tiers → Vercel (frontend) + Render free / HF Spaces (backend) + SQLite file (or Supabase free) → Why:** $0; HTTPS out of the box (required for `getUserMedia`).
+- **Hosting → Vercel Hobby + Render Free + Neon Free PostgreSQL:** public HTTPS is mandatory; backend disk is ephemeral and holds no durable user data. No Render persistent disk or expiring Render free database.
 - **CI → none vs GitHub Actions → GitHub Actions (free minutes) → Why:** run tests on push; auto-deploy hook.
+- **Status:** deployment correction and hosted verification are pending. Existing manifests and local test results do not prove the release is live or durable.
 
 ### Task Breakdown
 #### Task 7.1 — Backend deploy
 | Field | Detail |
 |-------|--------|
 | Description | Containerize + deploy FastAPI to free host with env secrets. |
-| Subtasks | (a) `Dockerfile` (uvicorn/gunicorn); (b) Render/HF service + env vars (JWT_SECRET, GEMINI_API_KEY, MQTT_HOST); (c) run Alembic on boot + seed; (d) note: IoT simulator runs as a background task/thread. |
-| Tech/Tools | Docker, Render/HF Spaces (free) |
+| Subtasks | (a) Remove Render disk/SQLite configuration; (b) set JWT secret, actual CORS origins, pooled/direct Neon URLs and backend OpenRouter configuration; (c) apply Alembic via the direct URL before serving, with idempotent optional demo seeding; (d) use one API process for the in-process simulator and verify WebSocket reconnect after restart; (e) fail hosted startup on missing database settings or placeholder JWT secret; (f) verify nudge catch-up, sensor retention, database wake-up, and preservation of user records. |
+| Tech/Tools | Docker, Render Free, Neon Free PostgreSQL, OpenRouter free API |
 | File(s) | `/backend/Dockerfile`, `/render.yaml` |
 | Effort | 1h |
-| Deliverable | Live HTTPS API |
+| Deliverable | Verified HTTPS API with Neon persistence, free-only OpenRouter responses, and no persistent-disk requirement |
 | Blocked by | Phase 6 |
 
 #### Task 7.2 — Frontend deploy + CI
 | Field | Detail |
 |-------|--------|
 | Description | Deploy SPA, point at API; CI runs tests. |
-| Subtasks | (a) Vercel project, set `VITE_API_URL`; (b) SPA rewrite for client routing; (c) GitHub Actions: install→test→build on push. |
+| Subtasks | (a) Vercel Hobby project, set actual HTTPS `VITE_API_URL` and matching backend CORS origin; (b) SPA rewrite and cold-start loading/retry UI; (c) GitHub Actions: unit tests, PostgreSQL integration/migrations, frontend tests and build; (d) run hosted E2E/manual acceptance separately, including actual webcam and WebSocket use. |
 | Tech/Tools | Vercel (free), GitHub Actions |
 | File(s) | `/.github/workflows/ci.yml`, `/frontend/vercel.json` |
 | Effort | 1h |
@@ -717,13 +769,22 @@ Secure, validated, indexed app → deploy.
 - [ ] Frontend talks to deployed backend (CORS correct).
 - [ ] CI runs tests on push.
 - [ ] Secrets only in host env, never in repo/bundle.
+- [ ] From a fresh browser, register, complete profile, save workout/diet/nutrition/chat/habit records, then sign in from another browser and retrieve the same data.
+- [ ] Restart and redeploy the backend and repeat reads; no record loss, database reseeding substitution, or local-machine dependency.
+- [ ] After backend sleep and Neon idle suspension, the UI handles wake-up and the API reconnects; IoT WebSocket reconnects and nudges catch up without duplicate daily rows.
+- [ ] Both selected OpenRouter models pass the live evaluation gate; confirm zero reported cost, account quota handling, and basic fallback without paid requests.
+- [ ] Sensor retention removes expired raw readings without deleting profiles, workouts, or other permanent user records.
+- [ ] Record working public frontend/API URLs and dated verification evidence; configuration creation alone is not completion.
+- [ ] Document a PostgreSQL export/restore procedure using the direct connection; verify a backup restores into a separate test database before submission, without overwriting the live database.
 
 ### Risks & Mitigations
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|-----------|
-| Free backend cold starts/sleeps | High | Med | Accept for demo; warm before presenting; document |
-| SQLite ephemeral FS on host wipes data | High | Med | Persist disk if available, or use Supabase free Postgres; reseed on boot |
-| MQTT broker unavailable in cloud | Med | Med | Default to in-process simulator in prod |
+| Backend and database cold starts | High | Med | Loading/retry UI, bounded connection recovery, warm manually before presenting; no always-on uptime claim |
+| API ephemeral filesystem | High | High | All durable records in Neon; restart/redeploy persistence checks; reseeding is not recovery |
+| OpenRouter account quota or model disappearance | High | Med | Explicit free-model chain and labelled basic fallback; recheck catalogue and available quota before evaluation |
+| Free database storage/compute allowance exhausted | Med | High | Sample/expire simulated readings, avoid idle database polling, monitor usage and keep verified exports |
+| In-process daily scheduler never fires on sleeping host | High | Med | Current-user daily catch-up on visits; off-session scheduled notifications deferred |
 
 ### Hand-off to Next Phase
 Live URLs + CI → iteration backlog.
@@ -738,13 +799,13 @@ Live URLs + CI → iteration backlog.
   Duration:       Ongoing
 
 ### Backlog (ranked)
-1. Swap SQLite → Supabase/Postgres (free tier) for durable data.
+1. Independent scheduling and notification delivery while users are absent; Neon persistence and in-app catch-up are required before launch, not backlog items.
 2. More exercises + ML-based form scoring (collect labeled data first).
-3. Real IoT: ESP32 + heart-rate sensor (when budget allows) replacing simulator.
+3. MQTT integration using the optional Mosquitto scaffold, then real IoT hardware replacing the simulator when grading scope/budget requires it.
 4. Refresh tokens + httpOnly cookie auth; email verification; password reset.
 5. Real "nearby gyms" via a free/keyed places provider + map.
 6. Mobile responsiveness polish / PWA install.
-7. Observability: error tracking (Sentry free), uptime ping.
+7. Expanded observability/error tracking; monitor availability without making artificial keep-alive traffic a free-host dependency.
 8. Accessibility (a11y) audit + i18n.
 
 ### Acceptance Criteria
@@ -755,6 +816,8 @@ Live URLs + CI → iteration backlog.
 ## STEP 3 — MASTER SUMMARY
 
 ### Project Execution Summary
+
+The day/hour figures below are historical initial-build estimates. Required remediation remains in Phases 1, 3, 5, 6, and 7; these figures do not estimate that work or indicate completion.
 | Phase | Name | Duration | Key Deliverables | Effort (hrs) |
 |-------|------|----------|------------------|--------------|
 | 0 | Setup & Infrastructure | ½ day | Monorepo, health endpoints, docker-compose | 4 |
@@ -764,7 +827,7 @@ Live URLs + CI → iteration backlog.
 | 4 | Integrations & Analytics | Day 4 | Dashboard summary + admin analytics | 3 |
 | 5 | Testing & QA | Day 5 | pytest/vitest/Playwright green | 3 |
 | 6 | Performance & Security | Day 5 | Auth/validation/rate-limit/perf pass | 2 |
-| 7 | Deployment & DevOps | Day 5 | Live HTTPS app + CI on free tiers | 2 |
+| 7 | Deployment & DevOps | Original Day 5; reopened | Verified HTTPS app + Neon persistence + free-only LLM + CI | 2 (historical) |
 | 8 | Post-Launch | ongoing | Upgrade backlog | — |
 | | **Total (Phases 0–7)** | **~5 days** | | **~45 hrs** |
 
@@ -788,18 +851,19 @@ Phase 0 (setup)
 
 ### Top 5 Project Risks (likelihood × impact)
 1. **Scope vs time** — 7 modules in 5 days solo. *Mitigation:* strict MVP-per-module, happy-path first, cut polish before cutting a module's core.
-2. **LLM free-tier limits/latency** (chat + diet narration). *Mitigation:* rule-based fallback guarantees function offline; cache; rate-limit.
+2. **LLM free-tier limits/latency and model withdrawal.** *Mitigation:* explicit zero-cost primary/backup, account-wide quotas, bounded requests, and labelled basic fallback; deterministic diet calculations remain independent.
 3. **Pose rep-count accuracy** across lighting/cameras. *Mitigation:* tunable thresholds, on-screen framing guidance, ±1 tolerance acceptance.
-4. **Free-host ephemerality / cold starts** (data loss, slow demo). *Mitigation:* reseed on boot or Supabase free Postgres; warm before demo.
+4. **Free-host ephemerality / cold starts.** *Mitigation:* Neon persistence, database reconnects, restart/redeploy tests, catch-up nudges, visible loading state, and verified database export; manual warm-up before demo.
 5. **Security gaps from speed** (unprotected route, leaked key). *Mitigation:* Phase 6 route-by-route audit; all secrets server-side; grep for missing auth deps.
 
 ### Final Tech Stack (complete)
-- **Frontend:** React 18, Vite 5, TypeScript, Tailwind CSS 3, React Router 6, Zustand, axios, react-hook-form + zod, Recharts, `@mediapipe/tasks-vision`, (optional Leaflet + OSM tiles).
-- **Backend:** Python 3.11, FastAPI, Uvicorn/Gunicorn, SQLAlchemy 2, Alembic, Pydantic v2, pydantic-settings, passlib[bcrypt], python-jose, slowapi, loguru, APScheduler, paho-mqtt, google-generativeai, vaderSentiment, scikit-learn, numpy, pandas, httpx.
-- **Data/Infra:** SQLite (dev/demo; Supabase free Postgres upgrade), Eclipse Mosquitto (MQTT), Docker + docker-compose.
+- **Frontend:** React 19, Vite 8, TypeScript, Tailwind CSS 3, React Router 7, Zustand, axios, react-hook-form + zod, Recharts, `@mediapipe/tasks-vision`; existing manifest/lockfile governs exact versions.
+- **Backend:** Python 3.12, FastAPI, Uvicorn, SQLAlchemy 2, Alembic, psycopg, Pydantic v2, pydantic-settings, passlib[bcrypt], python-jose, slowapi, loguru, vaderSentiment, numpy, httpx. In-process simulated IoT and visit-triggered nudge catch-up; no always-on scheduler dependency.
+- **Data/Infra:** Neon Free PostgreSQL (required), optional Docker development workflow; SQLite only for isolated tests/local experiments. Mosquitto scaffold is future MQTT work.
 - **Testing:** pytest, httpx, coverage, Vitest, React Testing Library, Playwright.
-- **DevOps/Hosting (all free):** GitHub + GitHub Actions, Vercel (frontend), Render/HF Spaces (backend). OpenStreetMap Nominatim (free geocoding).
-- **Cost:** $0 across the board.
+- **DevOps/Hosting:** GitHub + GitHub Actions within included allowances, Vercel Hobby frontend, Render Free backend, Neon Free database. OpenStreetMap Nominatim for optional geocoding.
+- **LLM:** OpenRouter via backend httpx; `qwen/qwen3.8-27b:free` primary → `nvidia/nemotron-3.5-lightning:free` backup → labelled basic fallback. API keys remain server-side.
+- **Cost:** $0 within ongoing free-tier quotas; no paid fallback or credit purchase. Provider limits and model availability must be rechecked before submission.
 
 ### Suggested Project File/Folder Structure
 ```
@@ -840,16 +904,37 @@ ai-gym-assistant/
 2. **Auth:** register → login → reload stays logged in; unauthed route redirects.
 3. **Trainer:** allow webcam, pick squat, do reps → count increments, form cue shows, finish → score saved, appears in history + weekly chart.
 4. **Diet:** complete profile → generate plan → BMI/TDEE/macros/grocery render; log a meal.
-5. **Chat:** send a message → reply (online Gemini or offline fallback badge); tone adapts to negative sentiment.
-6. **Habits:** log a few days → streak + skip-risk gauge; a nudge appears.
+5. **Chat:** verify an actual zero-cost OpenRouter reply and returned model; evaluate primary and backup separately; exercise no-key/quota/timeout basic-reply badge; tone adapts to negative sentiment. Fallback alone is not LLM sign-off.
+6. **Habits:** log a few days → streak + skip-risk gauge; a qualifying visit creates today's nudge after backend restart; repeated visits/dismissal do not create duplicates.
 7. **IoT:** open IoT page → live charts update; suggestion banner reacts to HR.
 8. **Reco:** enter city → ranked gym list with match % + reason.
 9. **Dashboard/Admin:** home cards aggregate all modules; admin route 403s for normal user, loads for admin.
 10. **Automated:** `pytest`, `vitest`, and the Playwright golden path all pass; CI green on push.
 11. **Security spot-check:** built frontend bundle contains no API keys; every protected route rejects no-token requests with 401.
+12. **Hosted persistence:** register/save data over public HTTPS, restart/redeploy API, and retrieve records from a second browser; laptop servers remain off.
+13. **Database:** PostgreSQL migration/integration tests, idle wake-up recovery, raw sensor retention, and export/restore into a separate test database pass.
+14. **Hosted resilience:** frontend cold-start UX, camera permissions over HTTPS, IoT reconnect, OpenRouter quota/basic fallback, and dated live model evaluation recorded. Keep mocked tests and real-provider evidence distinct.
 
 ## Open Confirmations (flagged assumptions)
 - MVP/demo fidelity per module is acceptable for grading (not production).
 - IoT fully simulated (no hardware) is acceptable.
-- Free Gemini key will be obtained (else app runs in fallback mode only).
+- OpenRouter account/key and Neon project credentials must be configured at implementation time; fallback-only chat does not meet the LLM demonstration acceptance criterion.
 - Web-only (no native mobile) is fine.
+
+---
+
+## Amendment — Frontend design system + landing page (2026-09-27)
+
+This amendment records scope added outside the Phase 0–8 structure, on explicit user request, while Phase 7 (Deployment, reopened) remains the current phase. It is recorded here so the phase log stays accurate; it is **not** a new phase and does not change the Phase 7 remaining-work order (PostgreSQL/Neon persistence → OpenRouter integration → restart-safe nudges and sensor retention → deployment correction → hosted acceptance checks).
+
+**What changed.** A design system derived from https://fitova.framer.ai/ now governs the whole frontend: semantic dark tokens and an Anton/Manrope type scale in `tailwind.config.js`, shared primitives in `src/components/ui/`, centralized chart colors in `src/lib/chartTheme.ts`, a one-page marketing landing at `/` in `src/features/landing/`, and a dark migration of auth, the app shell, and all nine module/dashboard pages. `src/pages/Home.tsx` was deleted and its `/health` probe folded into the landing footer. `framer-motion` and `lucide-react` were added and code-split.
+
+**Effect on existing plan items.**
+- The Phase 1 UI/UX spec (line ~294) still holds: the sidebar still collapses to a drawer below 768 px, and the loading/empty/error/success states are unchanged — they are now rendered through the shared `States`/`Disclaimer` primitives instead of inline markup.
+- The Phase 3 UI/UX spec (line ~525) still holds: chat typing indicator, disabled send while pending, autoscroll, and the IoT live/reconnecting indicator are all preserved.
+- Phase 6's requirement that the medical disclaimer appear on every module page is preserved, and a pre-existing gap on the Dietician page (disclaimer hidden in the empty state) was closed.
+- Backlog items #6 (mobile responsiveness polish) and #8 (a11y audit) are **partially** addressed — layouts were verified at 360/810/1360 px with no horizontal scroll, and icons carry `aria-hidden` with labelled controls — but no formal a11y audit, contrast audit, or PWA work was done. Both remain open.
+
+**Not addressed.** Nothing in the Phase 7 deployment sequence. No backend, API contract, `lib/api.ts`, `store/authStore.ts`, or `lib/types.ts` changes. No light-mode toggle and no additional marketing routes (`/about`, `/pricing`, `/blog`, `/team`).
+
+**Release-check impact.** Verification item 10 (`pytest`, `vitest`, Playwright golden path) was re-run for the frontend and passes. Item 14's "frontend cold-start UX" should be re-checked against the new landing page before release, since `/` is no longer a minimal health-check page and now loads two webfonts from Google Fonts.
