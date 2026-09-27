@@ -1,9 +1,10 @@
 from datetime import date, datetime
 
-from sqlalchemy import JSON, Date, DateTime, Float, ForeignKey, Index, Text, func
+from sqlalchemy import Date, Float, ForeignKey, Index, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
+from app.models.types import JSONColumn, TZDateTime
 
 
 class DietPlan(Base):
@@ -14,10 +15,10 @@ class DietPlan(Base):
     bmi: Mapped[float | None] = mapped_column(Float)
     tdee: Mapped[float | None] = mapped_column(Float)
     target_kcal: Mapped[float | None] = mapped_column(Float)
-    macros: Mapped[dict | None] = mapped_column(JSON)
-    meals: Mapped[dict | None] = mapped_column(JSON)
-    grocery: Mapped[dict | None] = mapped_column(JSON)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    macros: Mapped[dict | None] = mapped_column(JSONColumn)
+    meals: Mapped[list | None] = mapped_column(JSONColumn)
+    grocery: Mapped[list | None] = mapped_column(JSONColumn)
+    created_at: Mapped[datetime] = mapped_column(TZDateTime, server_default=func.now())
 
 
 class NutritionLog(Base):

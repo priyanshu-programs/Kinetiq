@@ -1,9 +1,10 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, String, Text, func
+from sqlalchemy import Float, ForeignKey, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
+from app.models.types import TZDateTime
 
 
 class GymRecommendation(Base):
@@ -16,4 +17,4 @@ class GymRecommendation(Base):
     distance_km: Mapped[float | None] = mapped_column(Float)
     match_score: Mapped[float | None] = mapped_column(Float)
     reason: Mapped[str | None] = mapped_column(Text)
-    ts: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    ts: Mapped[datetime] = mapped_column(TZDateTime, server_default=func.now())
