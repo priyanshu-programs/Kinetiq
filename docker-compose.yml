@@ -1,20 +1,47 @@
+# Optional local workflow. The hosted deployment uses Neon, not this database.
 services:
   backend:
     build: ./backend
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=sqlite:///./app.db
+      - APP_ENV=local
+      - RUN_SEED=true
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/kinetiq
+      - DATABASE_URL_UNPOOLED=postgresql://postgres:postgres@postgres:5432/kinetiq
       - CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
       - JWT_SECRET=${JWT_SECRET:-change-me-to-a-long-random-secret}
-      - MQTT_HOST=mosquitto
-      - MQTT_PORT=1883
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
     depends_on:
-      - mosquitto
+      postgres:
+        condition: service_healthy
 
+  # Local PostgreSQL for dialect parity with Neon. Run just this service
+  # (`docker compose up -d postgres`) to execute the @pytest.mark.postgres suite.
+  postgres:
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=kinetiq
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Reserved for the backlog MQTT work; the current IoT module is in-process
+  # and does not need a broker.
   mosquitto:
     image: eclipse-mosquitto:2
+    profiles: ["mqtt"]
     ports:
       - "1883:1883"
     volumes:
       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+
+volumes:
+  pgdata:

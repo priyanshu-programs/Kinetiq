@@ -11,6 +11,7 @@ __pycache__/
 venv/
 .pytest_cache/
 .ruff_cache/
+.coverage
 *.db
 *.sqlite3
 
@@ -34,3 +35,6 @@ Thumbs.db
 # Unrelated vendored repo (kept out of this project's history)
 andrej-karpathy-skills/
 skills/
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/
