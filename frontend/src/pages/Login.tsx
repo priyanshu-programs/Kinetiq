@@ -1,11 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Dumbbell } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 
 import { useAuthStore } from "../store/authStore";
+import { Logo } from "../components/Logo";
 
 const schema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -80,8 +80,30 @@ export function AuthCard({
 }) {
   return (
     <div className="flex min-h-screen bg-canvas">
-      {/* Brand panel — typographic, matching the landing hero treatment. */}
+      {/* Brand panel — photo + typographic, matching the landing hero treatment. */}
       <aside className="relative hidden w-1/2 overflow-hidden border-r border-hairline lg:block">
+        <picture aria-hidden className="absolute inset-0">
+          <source
+            type="image/webp"
+            srcSet="/login-768.webp 768w, /login.webp 1122w"
+            sizes="50vw"
+          />
+          <img
+            src="/login.webp"
+            alt=""
+            fetchPriority="high"
+            decoding="async"
+            className="h-full w-full object-cover object-center"
+          />
+        </picture>
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(23,23,23,0.15) 0%, rgba(23,23,23,0.55) 55%, rgba(23,23,23,0.85) 75%, #171717 100%)",
+          }}
+        />
         <div
           aria-hidden
           className="absolute inset-0"
@@ -92,8 +114,8 @@ export function AuthCard({
         />
         <div className="relative flex h-full flex-col justify-between p-12">
           <Link to="/" className="flex items-center gap-2">
-            <Dumbbell className="h-5 w-5 text-accent" aria-hidden />
-            <span className="display text-lg leading-none text-ink">Kinetiq</span>
+            <Logo className="h-9 w-auto" />
+            <span className="text-lg font-bold uppercase leading-none text-ink">Kinetiq</span>
           </Link>
           <div>
             <h2 className="display text-display-sm text-ink">
@@ -115,8 +137,8 @@ export function AuthCard({
             to="/"
             className="mb-10 inline-flex items-center gap-2 text-xs text-ink-3 transition hover:text-accent lg:hidden"
           >
-            <Dumbbell className="h-4 w-4 text-accent" aria-hidden />
-            <span className="display">Kinetiq</span>
+            <Logo className="h-7 w-auto" />
+            <span className="font-bold uppercase">Kinetiq</span>
           </Link>
           <h1 className="display text-3xl leading-none text-ink">{title}</h1>
           <p className="mt-3 mb-8 text-sm text-ink-3">{subtitle}</p>

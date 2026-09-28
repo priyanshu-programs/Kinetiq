@@ -18,7 +18,7 @@ const SIZES: Record<Size, string> = {
 
 /** Exported so <Link> CTAs match buttons exactly. */
 export function buttonClass(variant: Variant = "accent", size: Size = "md") {
-  return `inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${VARIANTS[variant]} ${SIZES[size]}`;
+  return `inline-flex items-center justify-center gap-2 rounded-full font-semibold uppercase transition disabled:cursor-not-allowed disabled:opacity-50 ${VARIANTS[variant]} ${SIZES[size]}`;
 }
 
 export function Button({

@@ -134,7 +134,7 @@ export function TrainerPage() {
                 key={ex}
                 onClick={() => setExercise(ex)}
                 disabled={active}
-                className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition ${
+                className={`rounded-lg px-3.5 py-1.5 text-sm font-medium uppercase transition ${
                   exercise === ex
                     ? "bg-accent text-accent-ink"
                     : "bg-surface-raised text-ink-2 hover:text-ink"
@@ -171,7 +171,7 @@ export function TrainerPage() {
           {pose.status === "error" && (
             <p className="mt-3 text-sm text-hot">
               {pose.error}{" "}
-              <button onClick={start} className="underline">
+              <button onClick={start} className="uppercase underline">
                 Retry
               </button>
             </p>

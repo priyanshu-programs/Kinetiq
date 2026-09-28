@@ -5,7 +5,7 @@ export const cardBase =
   "rounded-xl border border-hairline bg-surface transition";
 
 export const cardInteractive =
-  "hover:border-accent/50 hover:bg-surface-raised";
+  "card-glow hover:border-accent/50 hover:bg-surface-raised";
 
 export function Card({
   children,

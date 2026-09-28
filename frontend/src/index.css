@@ -10,21 +10,77 @@ body {
   @apply bg-canvas text-ink font-sans antialiased;
 }
 
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #171717;
+}
+::-webkit-scrollbar-thumb {
+  background: #c3ff96;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a8e878;
+}
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #c3ff96 #171717;
+  scroll-behavior: smooth;
+}
+
 @layer components {
   .auth-input {
     @apply w-full rounded-lg border border-hairline bg-surface px-3 py-2.5 text-sm text-ink placeholder:text-ink-4 outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/25;
   }
   .auth-submit {
-    @apply w-full rounded-lg bg-accent py-2.5 font-semibold text-accent-ink transition hover:bg-accent-dark disabled:opacity-60;
+    @apply w-full rounded-full bg-accent py-2.5 font-semibold uppercase text-accent-ink transition hover:bg-accent-dark disabled:opacity-60;
   }
   /* Anton is display-only: uppercase, never letter-spaced. */
   .display {
     @apply font-display uppercase tracking-normal;
+  }
+
+  /* Bottom-to-top subtle green hover glow. Uses site accent #c3ff96. */
+  .card-glow {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .card-glow::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(
+      to top,
+      rgb(195 255 150 / 14%) 0%,
+      rgb(195 255 150 / 6%) 28%,
+      transparent 62%
+    );
+    opacity: 0;
+    transition: opacity 300ms ease;
+    z-index: 0;
+  }
+  .card-glow > * {
+    position: relative;
+    z-index: 1;
+  }
+  @media (hover: hover) {
+    .card-glow:hover::before,
+    .card-glow:focus-visible::before {
+      opacity: 1;
+    }
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee {
     animation: none;
+  }
+  .card-glow::before {
+    transition: none;
   }
 }
