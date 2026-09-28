@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import { Button, Disclaimer, PageHeader, cardBase } from "../../components/ui";
+import { Button, Disclaimer, LatticeLoader, PageHeader, cardBase } from "../../components/ui";
 import { api } from "../../lib/api";
 import type { ChatMessage, ChatResponse } from "../../lib/types";
 
@@ -102,8 +102,20 @@ export function ChatPage() {
           ))}
           {pending && (
             <div className="flex justify-start">
-              <div className="rounded-2xl bg-surface-raised px-4 py-2.5 text-sm text-ink-4">
-                Gym Buddy is typing…
+              <div className="rounded-2xl bg-surface-raised px-4 py-3">
+                <LatticeLoader
+                  status="working"
+                  label="Thinking"
+                  pattern="orbit"
+                  grid={3}
+                  shape="round"
+                  cellSize={6}
+                  gap={2}
+                  fontSize={14}
+                  step={90}
+                  idleOpacity={0.15}
+                  showTimer
+                />
               </div>
             </div>
           )}

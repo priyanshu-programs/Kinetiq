@@ -141,7 +141,7 @@ export function IotPage() {
             <Card key={d.id}>
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-ink">{d.name}</span>
-                <span className="display text-xs text-ink-4">{d.type}</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-ink-4">{d.type}</span>
               </div>
               <p className="display mt-3 text-4xl leading-none text-ink">
                 {reading ? reading.value : "—"}{" "}

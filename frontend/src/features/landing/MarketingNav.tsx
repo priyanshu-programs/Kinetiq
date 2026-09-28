@@ -1,19 +1,20 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Dumbbell, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+import { Logo } from "../../components/Logo";
 import { buttonClass } from "../../components/ui";
 
 const SECTIONS = [
   { href: "#modules", label: "Modules" },
   { href: "#how", label: "How it works" },
-  { href: "#proof", label: "Results" },
-  { href: "#start", label: "Get started" },
+  { href: "#why-us", label: "Why Us?" },
 ];
 
 export function MarketingNav() {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   // The overlay owns the viewport while open.
   useEffect(() => {
@@ -23,13 +24,27 @@ export function MarketingNav() {
     };
   }, [open]);
 
+  // Glassmorphism only kicks in once the hero has scrolled past.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-40 border-b border-hairline bg-canvas/80 backdrop-blur">
+      <header
+        className={`fixed inset-x-0 top-0 z-40 border-b transition-colors ${
+          scrolled
+            ? "border-hairline bg-canvas/80 backdrop-blur"
+            : "border-transparent bg-transparent"
+        }`}
+      >
         <div className="mx-auto flex max-w-content items-center justify-between gap-4 px-4 py-4 sm:px-8">
           <Link to="/" className="flex items-center gap-2">
-            <Dumbbell className="h-5 w-5 text-accent" aria-hidden />
-            <span className="display text-lg leading-none text-ink">Kinetiq</span>
+            <Logo className="h-8 w-auto" />
+            <span className="text-lg font-bold uppercase leading-none text-ink">Kinetiq</span>
           </Link>
 
           <nav className="hidden items-center gap-8 md:flex">
@@ -37,7 +52,7 @@ export function MarketingNav() {
               <a
                 key={s.href}
                 href={s.href}
-                className="display text-xs text-ink-3 transition hover:text-accent"
+                className="text-sm font-medium uppercase text-ink-3 transition hover:text-accent"
               >
                 {s.label}
               </a>
@@ -45,16 +60,19 @@ export function MarketingNav() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <Link to="/login" className={`${buttonClass("ghost", "sm")} hidden sm:inline-flex`}>
+            <Link
+              to="/login"
+              className={`${buttonClass("ghost", "sm")} hidden uppercase sm:inline-flex`}
+            >
               Log in
             </Link>
-            <Link to="/register" className={buttonClass("accent", "sm")}>
+            <Link to="/register" className={`${buttonClass("accent", "sm")} uppercase`}>
               Get started
             </Link>
             <button
               onClick={() => setOpen(true)}
               aria-label="Open menu"
-              className="display ml-1 text-xs text-ink-3 transition hover:text-accent md:hidden"
+              className="ml-1 text-xs font-medium uppercase text-ink-3 transition hover:text-accent md:hidden"
             >
               Menu
             </button>
@@ -95,9 +113,16 @@ export function MarketingNav() {
             <Link
               to="/login"
               onClick={() => setOpen(false)}
-              className={`${buttonClass("outline", "lg")} mt-8 w-full`}
+              className={`${buttonClass("outline", "lg")} mt-8 w-full uppercase`}
             >
               Log in
+            </Link>
+            <Link
+              to="/register"
+              onClick={() => setOpen(false)}
+              className={`${buttonClass("accent", "lg")} mt-3 w-full uppercase`}
+            >
+              Get started
             </Link>
           </motion.div>
         )}

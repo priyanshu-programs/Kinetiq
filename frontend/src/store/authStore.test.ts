@@ -6,7 +6,7 @@ import { api, clearToken, getToken, setToken } from "../lib/api";
 vi.mock("../lib/api", () => {
   let token: string | null = null;
   return {
-    api: { get: vi.fn(), post: vi.fn() },
+    api: { get: vi.fn(), post: vi.fn(), put: vi.fn() },
     getToken: vi.fn(() => token),
     setToken: vi.fn((t: string) => {
       token = t;
@@ -64,5 +64,20 @@ describe("authStore", () => {
 
     expect(useAuthStore.getState().user?.id).toBe(7);
     expect(useAuthStore.getState().initialized).toBe(true);
+  });
+
+  it("saves a profile and updates the current user", async () => {
+    const profile = {
+      age: 30, sex: "male" as const, height_cm: 180, weight_kg: 80,
+      goal: "maintain" as const, activity_level: "moderate" as const,
+      diet_pref: "veg" as const, bmi: 24.7,
+    };
+    useAuthStore.setState({ user: { id: 1, email: "a@b.com", role: "user", profile: null } });
+    mockApi.put.mockResolvedValueOnce({ data: profile });
+
+    await useAuthStore.getState().saveProfile(profile);
+
+    expect(mockApi.put).toHaveBeenCalledWith("/profile", profile);
+    expect(useAuthStore.getState().user?.profile).toEqual(profile);
   });
 });

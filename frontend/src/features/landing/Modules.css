@@ -1,0 +1,55 @@
+.module-card-surface {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: 12px;
+  background: #1c1c1c;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+  overflow: hidden;
+  isolation: isolate;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.module-card-surface::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgb(195 255 150 / 14%) 0%,
+    rgb(195 255 150 / 6%) 28%,
+    transparent 62%
+  );
+  opacity: 0;
+  transition: opacity 300ms ease;
+  z-index: 0;
+}
+
+.module-card-surface > div {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+@media (hover: hover) {
+  .module-card-surface:hover {
+    border-color: rgb(195 255 150 / 55%);
+    box-shadow: 0 0 0 1px rgb(195 255 150 / 14%), 0 0 24px rgb(195 255 150 / 16%);
+  }
+
+  .module-card-surface:hover::before,
+  .module-card-surface:focus-visible::before {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .module-card-surface,
+  .module-card-surface::before {
+    transition: none;
+  }
+}

@@ -244,3 +244,10 @@ Supersedes the 2026-09-26 Phase 7 entry, whose completion claim was withdrawn. T
 - Neon idle-suspend wake-up, sensor-retention expiry, and the PostgreSQL export/restore-into-a-separate-database procedure are not yet demonstrated.
 - The model gate's injury prompt offered probable causes ("tracking issues, quad tightness") before its not-medical-advice note â€” a prompt tightening, not a code change.
 - A test account (`verify+57901@example.com`, id 7) remains in the production database as acceptance evidence.
+
+## Out-of-phase — Landing "We don't sell motivation" image zoom (2026-09-28)
+
+Not a plan.md phase; done on user request.
+
+- `features/landing/Stats.tsx`: the left feedback image now scales 1.4x -> 1x tied to scroll (framer-motion `useScroll` on the image frame, offset `start end` -> `center center`, `useTransform`). The frame's `overflow-hidden` crops the zoom. Skipped under `prefers-reduced-motion`.
+- Validation: `tsc -b` clean. Not checked visually in a browser.

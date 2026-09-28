@@ -1,7 +1,8 @@
 import { create } from "zustand";
 
 import { api, clearToken, getToken, setToken } from "../lib/api";
-import type { User } from "../lib/types";
+import type { Profile, User } from "../lib/types";
+import type { ProfilePayload } from "../features/profile/profileForm";
 
 interface AuthState {
   user: User | null;
@@ -11,6 +12,7 @@ interface AuthState {
   register: (email: string, password: string) => Promise<void>;
   logout: () => void;
   hydrate: () => Promise<void>;
+  saveProfile: (profile: ProfilePayload) => Promise<void>;
 }
 
 async function fetchMe(): Promise<User> {
@@ -59,5 +61,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     } finally {
       set({ loading: false, initialized: true });
     }
+  },
+
+  saveProfile: async (profile) => {
+    const { data } = await api.put<Profile>("/profile", profile);
+    set((state) => ({ user: state.user ? { ...state.user, profile: data } : null }));
   },
 }));

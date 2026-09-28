@@ -1,8 +1,7 @@
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
 
-import { buttonClass } from "../../components/ui";
+import { ArrowCta, buttonClass } from "../../components/ui";
+import TechText from "../../components/ui/TechText";
 
 const rise = {
   hidden: { opacity: 0, y: 24 },
@@ -11,9 +10,17 @@ const rise = {
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-[92vh] items-end overflow-hidden pt-24">
-      {/* Depth without photography: low-key radial wash + a floor scrim,
-          mirroring the reference's gradient-over-image treatment. */}
+    <section className="relative flex min-h-screen items-end overflow-hidden pt-24">
+      {/* Hero photo, with a low-key radial wash + floor scrim layered on top for depth. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage: "url(/desktop-hero.webp)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      />
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
@@ -34,22 +41,23 @@ export function Hero() {
         animate="show"
         transition={{ staggerChildren: 0.1 }}
       >
-        <motion.p
-          variants={rise}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="display text-xs text-accent"
-        >
-          [ AI fitness assistant ]
-        </motion.p>
-
         <motion.h1
           variants={rise}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="display mt-5 max-w-5xl text-display-lg text-ink"
+          className="display max-w-5xl text-display-lg text-ink"
         >
-          Discipline over
-          <br />
-          <span className="text-accent">motivation</span>
+          <span className="sr-only">Discipline over motivation</span>
+          <span aria-hidden="true">
+            <TechText inline text="DISCIPLINE OVER" fontWeight={400} letterSpacing={0}
+              color="#ffffff" accentColor="#c3ff96" reveal="letter" sweepDelay={1} specks={15}
+              labels selection draggable dashLength={3} dashGap={3}
+              strokeWidth={1.25} speed={0.55} />
+            <br />
+            <TechText inline text="MOTIVATION" fontWeight={400} letterSpacing={0}
+              color="#c3ff96" accentColor="#c3ff96" reveal="letter" sweepDelay={1} specks={15}
+              labels labelPosition="below" selection draggable dashLength={3} dashGap={3}
+              strokeWidth={1.25} speed={0.55} />
+          </span>
         </motion.h1>
 
         <motion.p
@@ -59,7 +67,7 @@ export function Hero() {
         >
           Your camera counts the reps and checks your form. Your coach answers at
           2am. Your plan adapts every week. Seven modules, one account, entirely
-          in the browser.
+          in one application.
         </motion.p>
 
         <motion.div
@@ -67,9 +75,7 @@ export function Hero() {
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="mt-10 flex flex-wrap items-center gap-3"
         >
-          <Link to="/register" className={buttonClass("accent", "lg")}>
-            Start training <ArrowRight className="h-4 w-4" aria-hidden />
-          </Link>
+          <ArrowCta to="/register">Start training</ArrowCta>
           <a href="#modules" className={buttonClass("outline", "lg")}>
             See the modules
           </a>

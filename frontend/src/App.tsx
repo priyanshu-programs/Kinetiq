@@ -9,6 +9,8 @@ import { LandingPage } from "./features/landing/LandingPage";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { Dashboard } from "./pages/Dashboard";
+import { Onboarding } from "./pages/Onboarding";
+import { ProfilePage } from "./pages/ProfilePage";
 
 // Code-split the heavy feature routes (MediaPipe, Recharts, WebSocket) so they
 // load on demand instead of bloating the initial bundle.
@@ -50,11 +52,12 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
 
       <Route
         path="/app"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requireProfile>
             <DashboardLayout />
           </ProtectedRoute>
         }
@@ -68,6 +71,7 @@ function App() {
         <Route path="iot" element={<IotPage />} />
         <Route path="reco" element={<RecoPage />} />
         <Route path="admin" element={<Admin />} />
+        <Route path="profile" element={<ProfilePage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

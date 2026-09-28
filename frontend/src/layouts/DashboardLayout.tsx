@@ -10,10 +10,13 @@ import {
   Salad,
   Shield,
   TrendingUp,
+  UserRound,
   X,
 } from "lucide-react";
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
+
+import { Logo } from "../components/Logo";
 
 import { useAuthStore } from "../store/authStore";
 
@@ -72,14 +75,14 @@ export function DashboardLayout() {
     <div className="flex min-h-screen bg-canvas">
       {/* Sidebar — fixed on desktop, drawer on mobile */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 w-64 transform border-r border-hairline bg-canvas-deep p-4 transition-transform md:static md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-30 flex h-screen w-64 transform flex-col overflow-y-auto border-r border-hairline bg-canvas-deep p-4 transition-transform md:sticky md:top-0 md:translate-x-0 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="mb-8 flex items-center justify-between px-2 pt-2">
           <div className="flex items-center gap-2">
-            <Dumbbell className="h-5 w-5 text-accent" aria-hidden />
-            <span className="display text-lg leading-none text-ink">Kinetiq</span>
+            <Logo className="h-8 w-auto" />
+            <span className="text-lg font-bold uppercase leading-none text-ink">Kinetiq</span>
           </div>
           <button
             className="p-1 text-ink-3 md:hidden"
@@ -90,6 +93,20 @@ export function DashboardLayout() {
           </button>
         </div>
         {nav}
+        <NavLink
+          to="/app/profile"
+          onClick={() => setOpen(false)}
+          className={({ isActive }) => `mt-auto flex items-center gap-3 rounded-xl border p-3 text-left transition ${isActive ? "border-accent bg-surface-raised" : "border-hairline hover:border-hairline-strong hover:bg-surface-raised"}`}
+          aria-label="Open your profile"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-raised text-accent">
+            <UserRound className="h-5 w-5" aria-hidden />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-xs font-semibold uppercase text-ink">Your profile</span>
+            <span className="block truncate text-xs text-ink-3">{user?.email}</span>
+          </span>
+        </NavLink>
       </aside>
 
       {/* Backdrop for mobile drawer */}
@@ -113,7 +130,7 @@ export function DashboardLayout() {
             <span className="hidden text-ink-4 sm:inline">{user?.email}</span>
             <button
               onClick={handleLogout}
-              className="inline-flex items-center gap-2 rounded-lg border border-hairline px-3 py-1.5 font-medium text-ink-2 transition hover:border-hairline-strong hover:text-ink"
+              className="inline-flex items-center gap-2 rounded-lg border border-hairline px-3 py-1.5 font-medium uppercase text-ink-2 transition hover:border-hairline-strong hover:text-ink"
             >
               <LogOut className="h-4 w-4" aria-hidden />
               Log out

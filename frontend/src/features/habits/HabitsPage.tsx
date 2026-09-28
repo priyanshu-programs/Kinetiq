@@ -84,7 +84,7 @@ export function HabitsPage() {
               </div>
               <button
                 onClick={() => dismiss(n.id)}
-                className="ml-4 text-sm text-ink-3 transition hover:text-ink"
+                className="ml-4 text-sm uppercase text-ink-3 transition hover:text-ink"
               >
                 Dismiss
               </button>

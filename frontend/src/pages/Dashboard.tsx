@@ -104,7 +104,7 @@ export function Dashboard() {
 
       <SummaryStrip />
 
-      <h2 className="display mt-12 text-xs text-ink-4">Modules</h2>
+      <h2 className="mt-12 text-xs font-semibold uppercase tracking-wide text-ink-4">Modules</h2>
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {CARDS.map((c) => (
           <Link
